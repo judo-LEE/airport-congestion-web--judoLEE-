@@ -39,6 +39,17 @@
   color: #ef4444;
 }
 
+.slot-not-found {
+  padding: 20px 24px;
+  border: 1px solid #f59e0b;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.08);
+  color: var(--text-h);
+  margin-bottom: 20px;
+  text-align: center;
+  line-height: 1.6;
+}
+
 @media (max-width: 640px) {
   .app {
     padding: 16px;

@@ -1,14 +1,95 @@
 import type { PassengerItem } from '../types/passenger'
 
+export function formatLocalDate(date: Date) {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+export function getCurrentTimeString(date = new Date()) {
+  const h = String(date.getHours()).padStart(2, '0')
+  const m = String(date.getMinutes()).padStart(2, '0')
+  return `${h}:${m}`
+}
+
+export function toAdate(isoDate: string) {
+  return isoDate.replace(/-/g, '')
+}
+
+export function hourFromTimeString(time: string) {
+  return Number.parseInt(time.split(':')[0] ?? '0', 10)
+}
+
+export function toAtime(hour: number) {
+  const start = String(hour).padStart(2, '0')
+  const end = String(hour + 1).padStart(2, '0')
+  return `${start}_${end}`
+}
+
+export function findPassengerItem(
+  items: PassengerItem[],
+  isoDate: string,
+  hour: number,
+) {
+  const adate = toAdate(isoDate)
+  const atime = toAtime(hour)
+  return items.find((item) => item.adate === adate && item.atime === atime)
+}
+
+export function formatDisplayDate(adate: string) {
+  if (adate.length !== 8) return adate
+  return `${adate.slice(0, 4)}-${adate.slice(4, 6)}-${adate.slice(6, 8)}`
+}
+
 export function formatTime(value: string) {
   const [start, end] = value.split('_')
   if (!start || !end) return value
   return `${start}:00`
 }
 
+export function formatTimeRange(value: string) {
+  const [start, end] = value.split('_')
+  if (!start || !end) return value
+  return `${start}:00 ~ ${end}:00`
+}
+
 export function parseCount(value: string) {
   const count = Number.parseFloat(value)
   return Number.isNaN(count) ? 0 : count
+}
+
+export function getCongestionLevel(count: number) {
+  if (count >= 800) return 'high'
+  if (count >= 400) return 'medium'
+  if (count > 0) return 'low'
+  return 'none'
+}
+
+export function getCongestionLabel(level: ReturnType<typeof getCongestionLevel>) {
+  switch (level) {
+    case 'high':
+      return '혼잡'
+    case 'medium':
+      return '보통'
+    case 'low':
+      return '여유'
+    default:
+      return '없음'
+  }
+}
+
+export function getDateRange(days = 2) {
+  const today = new Date()
+  const dates: string[] = []
+
+  for (let i = 0; i < days; i++) {
+    const date = new Date(today)
+    date.setDate(today.getDate() + i)
+    dates.push(formatLocalDate(date))
+  }
+
+  return { min: dates[0], max: dates[dates.length - 1] }
 }
 
 export function buildSummaryChartData(items: PassengerItem[]) {
