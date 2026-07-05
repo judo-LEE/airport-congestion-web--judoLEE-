@@ -1,44 +1,8 @@
 import { useEffect, useState } from 'react'
+import { fetchPassengerAnnouncement } from './api/passenger'
 import { PassengerChart } from './components/PassengerChart'
-import type { PassengerApiResponse, PassengerItem } from './types/passenger'
+import type { PassengerItem } from './types/passenger'
 import './App.css'
-
-interface FetchPassengerParams {
-  selectdate?: '0' | '1'
-  numOfRows?: string
-  pageNo?: string
-}
-
-async function fetchPassengerAnnouncement({
-  selectdate = '0',
-  numOfRows = '100',
-  pageNo = '1',
-}: FetchPassengerParams = {}) {
-  const baseUrl = import.meta.env.VITE_BASE_URL
-  const apiKey = import.meta.env.VITE_API_KEY
-
-  const url = new URL(`${baseUrl}/getPassgrAnncmt`, window.location.origin)
-  url.searchParams.set('serviceKey', apiKey)
-  url.searchParams.set('selectdate', selectdate)
-  url.searchParams.set('type', 'json')
-  url.searchParams.set('numOfRows', numOfRows)
-  url.searchParams.set('pageNo', pageNo)
-
-  const response = await fetch(url.toString())
-
-  if (!response.ok) {
-    throw new Error(`API 요청 실패: ${response.status}`)
-  }
-
-  const data: PassengerApiResponse = await response.json()
-  const { header, body } = data.response
-
-  if (header.resultCode !== '00') {
-    throw new Error(`API 오류: ${header.resultMsg}`)
-  }
-
-  return body
-}
 
 function App() {
   const [items, setItems] = useState<PassengerItem[]>([])
