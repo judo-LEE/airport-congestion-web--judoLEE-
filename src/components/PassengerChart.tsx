@@ -10,6 +10,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { useTheme } from '../context/ThemeContext'
 import type { PassengerItem } from '../types/passenger'
 import {
   buildSummaryStats,
@@ -25,62 +26,49 @@ interface PassengerChartProps {
   items: PassengerItem[]
 }
 
-const TOTAL_LINES = [
-  { key: 'T1 입국장 합계', color: '#6366f1' },
-  { key: 'T1 출국장 합계', color: '#8b5cf6' },
-  { key: 'T2 입국장 합계', color: '#06b6d4' },
-  { key: 'T2 출국장 합계', color: '#10b981' },
+const TOTAL_KEYS = [
+  'T1 입국장 합계',
+  'T1 출국장 합계',
+  'T2 입국장 합계',
+  'T2 출국장 합계',
 ] as const
 
-const T1_ARRIVAL_BARS = [
-  { key: '동편 A', color: '#6366f1' },
-  { key: '동편 B', color: '#818cf8' },
-  { key: '서편 E', color: '#a5b4fc' },
-  { key: '서편 F', color: '#c7d2fe' },
-] as const
+const T1_ARRIVAL_KEYS = ['동편 A', '동편 B', '서편 E', '서편 F'] as const
+const T1_DEPARTURE_KEYS = ['출국 1', '출국 2', '출국 3', '출국 4', '출국 5', '출국 6'] as const
+const T2_ARRIVAL_KEYS = ['입국 1', '입국 2'] as const
+const T2_DEPARTURE_KEYS = ['출국 1', '출국 2'] as const
 
-const T1_DEPARTURE_BARS = [
-  { key: '출국 1', color: '#8b5cf6' },
-  { key: '출국 2', color: '#a78bfa' },
-  { key: '출국 3', color: '#c4b5fd' },
-  { key: '출국 4', color: '#ddd6fe' },
-  { key: '출국 5', color: '#ede9fe' },
-  { key: '출국 6', color: '#f5f3ff' },
-] as const
-
-const T2_ARRIVAL_BARS = [
-  { key: '입국 1', color: '#06b6d4' },
-  { key: '입국 2', color: '#22d3ee' },
-] as const
-
-const T2_DEPARTURE_BARS = [
-  { key: '출국 1', color: '#10b981' },
-  { key: '출국 2', color: '#34d399' },
-] as const
-
-const TOOLTIP_STYLE = {
-  background: 'var(--bg)',
-  border: '1px solid var(--border)',
-  borderRadius: '8px',
-  color: 'var(--text-h)',
+function zipColors(keys: readonly string[], colors: readonly string[]) {
+  return keys.map((key, index) => ({ key, color: colors[index] ?? colors.at(-1)! }))
 }
 
 function formatTooltipValue(value: unknown) {
   return `${Math.round(Number(value ?? 0)).toLocaleString()}명`
 }
 
-function ChartTooltip() {
-  return <Tooltip formatter={formatTooltipValue} contentStyle={TOOLTIP_STYLE} />
-}
-
 interface DetailBarChartProps {
   data: Record<string, string | number>[]
-  bars: readonly { key: string; color: string }[]
+  bars: { key: string; color: string }[]
+  themeKey: string
 }
 
-function DetailBarChart({ data, bars }: DetailBarChartProps) {
+function ChartTooltip() {
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <Tooltip
+      formatter={formatTooltipValue}
+      contentStyle={{
+        background: 'var(--bg)',
+        border: '1px solid var(--border)',
+        borderRadius: '8px',
+        color: 'var(--text-h)',
+      }}
+    />
+  )
+}
+
+function DetailBarChart({ data, bars, themeKey }: DetailBarChartProps) {
+  return (
+    <ResponsiveContainer width="100%" height="100%" key={themeKey}>
       <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
         <XAxis
@@ -96,7 +84,7 @@ function DetailBarChart({ data, bars }: DetailBarChartProps) {
           width={40}
         />
         <ChartTooltip />
-        <Legend wrapperStyle={{ fontSize: 11 }} />
+        <Legend wrapperStyle={{ fontSize: 11, color: 'var(--text)' }} />
         {bars.map((bar) => (
           <Bar
             key={bar.key}
@@ -111,12 +99,20 @@ function DetailBarChart({ data, bars }: DetailBarChartProps) {
 }
 
 export function PassengerChart({ items }: PassengerChartProps) {
+  const { theme, chartColors } = useTheme()
+
   const totalData = buildTotalChartData(items)
   const t1ArrivalData = buildT1ArrivalChartData(items)
   const t1DepartureData = buildT1DepartureChartData(items)
   const t2ArrivalData = buildT2ArrivalChartData(items)
   const t2DepartureData = buildT2DepartureChartData(items)
   const stats = buildSummaryStats(items)
+
+  const totalLines = zipColors(TOTAL_KEYS, chartColors.totalLines)
+  const t1ArrivalBars = zipColors(T1_ARRIVAL_KEYS, chartColors.t1Arrival)
+  const t1DepartureBars = zipColors(T1_DEPARTURE_KEYS, chartColors.t1Departure)
+  const t2ArrivalBars = zipColors(T2_ARRIVAL_KEYS, chartColors.t2Arrival)
+  const t2DepartureBars = zipColors(T2_DEPARTURE_KEYS, chartColors.t2Departure)
 
   return (
     <div className="dashboard">
@@ -158,7 +154,7 @@ export function PassengerChart({ items }: PassengerChartProps) {
             </p>
           </div>
           <div className="chart-panel__canvas">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" key={theme}>
               <LineChart data={totalData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis
@@ -175,8 +171,8 @@ export function PassengerChart({ items }: PassengerChartProps) {
                   width={48}
                 />
                 <ChartTooltip />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                {TOTAL_LINES.map((line) => (
+                <Legend wrapperStyle={{ fontSize: 12, color: 'var(--text)' }} />
+                {totalLines.map((line) => (
                   <Line
                     key={line.key}
                     type="monotone"
@@ -198,7 +194,11 @@ export function PassengerChart({ items }: PassengerChartProps) {
             <p className="chart-panel__desc">개별 입국장만 표시</p>
           </div>
           <div className="chart-panel__canvas">
-            <DetailBarChart data={t1ArrivalData} bars={T1_ARRIVAL_BARS} />
+            <DetailBarChart
+              data={t1ArrivalData}
+              bars={t1ArrivalBars}
+              themeKey={theme}
+            />
           </div>
         </section>
 
@@ -208,7 +208,11 @@ export function PassengerChart({ items }: PassengerChartProps) {
             <p className="chart-panel__desc">개별 출국장만 표시</p>
           </div>
           <div className="chart-panel__canvas">
-            <DetailBarChart data={t1DepartureData} bars={T1_DEPARTURE_BARS} />
+            <DetailBarChart
+              data={t1DepartureData}
+              bars={t1DepartureBars}
+              themeKey={theme}
+            />
           </div>
         </section>
 
@@ -218,7 +222,11 @@ export function PassengerChart({ items }: PassengerChartProps) {
             <p className="chart-panel__desc">개별 입국장만 표시</p>
           </div>
           <div className="chart-panel__canvas">
-            <DetailBarChart data={t2ArrivalData} bars={T2_ARRIVAL_BARS} />
+            <DetailBarChart
+              data={t2ArrivalData}
+              bars={t2ArrivalBars}
+              themeKey={theme}
+            />
           </div>
         </section>
 
@@ -228,7 +236,11 @@ export function PassengerChart({ items }: PassengerChartProps) {
             <p className="chart-panel__desc">개별 출국장만 표시</p>
           </div>
           <div className="chart-panel__canvas">
-            <DetailBarChart data={t2DepartureData} bars={T2_DEPARTURE_BARS} />
+            <DetailBarChart
+              data={t2DepartureData}
+              bars={t2DepartureBars}
+              themeKey={theme}
+            />
           </div>
         </section>
       </div>

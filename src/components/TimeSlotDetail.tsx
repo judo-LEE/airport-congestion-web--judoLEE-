@@ -8,6 +8,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { useTheme } from '../context/ThemeContext'
 import type { PassengerItem } from '../types/passenger'
 import {
   formatDisplayDate,
@@ -27,18 +28,23 @@ interface GateData {
   value: number
 }
 
-const GATE_COLORS = {
-  low: '#22c55e',
-  medium: '#f59e0b',
-  high: '#ef4444',
-  none: '#9ca3af',
-} as const
+function GateBarChart({
+  title,
+  data,
+  themeKey,
+}: {
+  title: string
+  data: GateData[]
+  themeKey: string
+}) {
+  const { chartColors } = useTheme()
+  const gateColors = chartColors.gate
+  const chartHeight = Math.max(180, data.length * 36)
 
-function GateBarChart({ title, data }: { title: string; data: GateData[] }) {
   return (
     <div className="slot-gate-chart">
       <h4>{title}</h4>
-      <ResponsiveContainer width="100%" height={200}>
+      <ResponsiveContainer width="100%" height={chartHeight} key={themeKey}>
         <BarChart
           data={data}
           layout="vertical"
@@ -69,7 +75,7 @@ function GateBarChart({ title, data }: { title: string; data: GateData[] }) {
           <Bar dataKey="value" radius={[0, 4, 4, 0]}>
             {data.map((entry) => {
               const level = getCongestionLevel(entry.value)
-              return <Cell key={entry.name} fill={GATE_COLORS[level]} />
+              return <Cell key={entry.name} fill={gateColors[level]} />
             })}
           </Bar>
         </BarChart>
@@ -101,6 +107,7 @@ function SummaryCard({
 }
 
 export function TimeSlotDetail({ item }: TimeSlotDetailProps) {
+  const { theme } = useTheme()
   const t1Arrival = parseCount(item.t1egsum1)
   const t1Departure = parseCount(item.t1dgsum1)
   const t2Arrival = parseCount(item.t2egsum1)
@@ -161,10 +168,10 @@ export function TimeSlotDetail({ item }: TimeSlotDetailProps) {
       <div className="slot-detail__details">
         <h3>출입국장별 상세</h3>
         <div className="slot-detail__gate-grid">
-          <GateBarChart title="T1 입국장" data={t1ArrivalGates} />
-          <GateBarChart title="T1 출국장" data={t1DepartureGates} />
-          <GateBarChart title="T2 입국장" data={t2ArrivalGates} />
-          <GateBarChart title="T2 출국장" data={t2DepartureGates} />
+          <GateBarChart title="T1 입국장" data={t1ArrivalGates} themeKey={theme} />
+          <GateBarChart title="T1 출국장" data={t1DepartureGates} themeKey={theme} />
+          <GateBarChart title="T2 입국장" data={t2ArrivalGates} themeKey={theme} />
+          <GateBarChart title="T2 출국장" data={t2DepartureGates} themeKey={theme} />
         </div>
       </div>
     </section>

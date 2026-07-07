@@ -11,6 +11,8 @@ import {
   getDateRange,
   hourFromTimeString,
 } from './utils/passenger'
+import { ThemeProvider } from './context/ThemeContext'
+import { ThemeToggle } from './components/ThemeToggle'
 import './App.css'
 
 function App() {
@@ -81,8 +83,11 @@ function App() {
   return (
     <main className="app">
       <header className="app__header">
-        <h1>인천공항 혼잡도</h1>
-        <p>승객예고 · 출입국장별 예상 승객 수</p>
+        <div className="app__header-text">
+          <h1>인천공항 혼잡도</h1>
+          <p>승객예고 · 출입국장별 예상 승객 수</p>
+        </div>
+        <ThemeToggle />
       </header>
 
       {loading && <p className="status">데이터를 불러오는 중...</p>}
@@ -120,4 +125,10 @@ function App() {
   )
 }
 
-export default App
+export default function AppRoot() {
+  return (
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
+  )
+}
