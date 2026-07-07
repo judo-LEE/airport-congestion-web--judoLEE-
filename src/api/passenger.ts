@@ -1,10 +1,8 @@
-import type { PassengerApiResponse } from '../types/passenger'
-
-interface FetchPassengerParams {
-  selectdate?: '0' | '1'
-  numOfRows?: string
-  pageNo?: string
-}
+import type {
+  FetchPassengerParams,
+  PassengerApiResponse,
+} from '../types/api'
+import type { PassengerItem } from '../types/passenger'
 
 export async function fetchPassengerAnnouncement({
   selectdate = '0',
@@ -40,4 +38,13 @@ export async function fetchPassengerAnnouncement({
   }
 
   return body
+}
+
+export async function fetchAllPassengerItems(): Promise<PassengerItem[]> {
+  const [today, tomorrow] = await Promise.all([
+    fetchPassengerAnnouncement({ selectdate: '0' }),
+    fetchPassengerAnnouncement({ selectdate: '1' }),
+  ])
+
+  return [...today.items, ...tomorrow.items]
 }

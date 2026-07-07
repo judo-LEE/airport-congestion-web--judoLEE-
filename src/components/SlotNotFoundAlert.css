@@ -1,0 +1,11 @@
+.slot-not-found {
+  padding: clamp(1rem, 3vw, 1.25rem);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--code-bg);
+  color: var(--text-h);
+  margin-bottom: 1.25rem;
+  text-align: center;
+  line-height: 1.6;
+  font-size: var(--font-sm);
+}

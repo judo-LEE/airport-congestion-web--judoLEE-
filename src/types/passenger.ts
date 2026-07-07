@@ -22,18 +22,3 @@ export interface PassengerItem {
   tmp1: string
   tmp2: string
 }
-
-export interface PassengerApiResponse {
-  response: {
-    header: {
-      resultCode: string
-      resultMsg: string
-    }
-    body: {
-      items: PassengerItem[]
-      numOfRows: number
-      pageNo: number
-      totalCount: number
-    }
-  }
-}
