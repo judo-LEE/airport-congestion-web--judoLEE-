@@ -39,8 +39,7 @@
 
 .dashboard__charts {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  grid-template-rows: auto auto;
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
 
@@ -55,9 +54,13 @@
   min-height: 320px;
 }
 
-.chart-panel--summary {
+.chart-panel--totals {
   grid-column: 1 / -1;
   min-height: 340px;
+}
+
+.chart-panel--detail {
+  min-height: 300px;
 }
 
 .chart-panel__header {
@@ -85,7 +88,7 @@
   min-height: 260px;
 }
 
-.chart-panel--summary .chart-panel__canvas {
+.chart-panel--totals .chart-panel__canvas {
   min-height: 280px;
 }
 
@@ -98,7 +101,7 @@
     grid-template-columns: 1fr;
   }
 
-  .chart-panel--summary {
+  .chart-panel--totals {
     grid-column: auto;
   }
 }

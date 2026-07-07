@@ -72,11 +72,43 @@
   color: var(--text);
 }
 
+.slot-detail__totals,
+.slot-detail__details {
+  margin-bottom: 20px;
+}
+
+.slot-detail__totals h3,
+.slot-detail__details h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  color: var(--text-h);
+  text-align: left;
+}
+
+.slot-detail__gate-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.slot-gate-chart {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.slot-gate-chart h4 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--text-h);
+  text-align: left;
+}
+
 .slot-detail__summary {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-  margin-bottom: 20px;
 }
 
 .slot-summary {
@@ -133,14 +165,11 @@
   color: var(--text);
 }
 
-.slot-detail__chart h3 {
-  margin: 0 0 12px;
-  font-size: 16px;
-  color: var(--text-h);
-  text-align: left;
-}
-
 @media (max-width: 900px) {
+  .slot-detail__gate-grid {
+    grid-template-columns: 1fr;
+  }
+
   .slot-detail__summary {
     grid-template-columns: repeat(2, 1fr);
   }

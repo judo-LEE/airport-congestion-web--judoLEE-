@@ -25,7 +25,6 @@ interface TimeSlotDetailProps {
 interface GateData {
   name: string
   value: number
-  terminal: string
 }
 
 const GATE_COLORS = {
@@ -35,23 +34,48 @@ const GATE_COLORS = {
   none: '#9ca3af',
 } as const
 
-function buildGateData(item: PassengerItem): GateData[] {
-  return [
-    { name: 'T1 동편 A', value: parseCount(item.t1eg1), terminal: 'T1 입국' },
-    { name: 'T1 동편 B', value: parseCount(item.t1eg2), terminal: 'T1 입국' },
-    { name: 'T1 서편 E', value: parseCount(item.t1eg3), terminal: 'T1 입국' },
-    { name: 'T1 서편 F', value: parseCount(item.t1eg4), terminal: 'T1 입국' },
-    { name: 'T1 출국 1', value: parseCount(item.t1dg1), terminal: 'T1 출국' },
-    { name: 'T1 출국 2', value: parseCount(item.t1dg2), terminal: 'T1 출국' },
-    { name: 'T1 출국 3', value: parseCount(item.t1dg3), terminal: 'T1 출국' },
-    { name: 'T1 출국 4', value: parseCount(item.t1dg4), terminal: 'T1 출국' },
-    { name: 'T1 출국 5', value: parseCount(item.t1dg5), terminal: 'T1 출국' },
-    { name: 'T1 출국 6', value: parseCount(item.t1dg6), terminal: 'T1 출국' },
-    { name: 'T2 입국 1', value: parseCount(item.t2eg1), terminal: 'T2 입국' },
-    { name: 'T2 입국 2', value: parseCount(item.t2eg2), terminal: 'T2 입국' },
-    { name: 'T2 출국 1', value: parseCount(item.t2dg1), terminal: 'T2 출국' },
-    { name: 'T2 출국 2', value: parseCount(item.t2dg2), terminal: 'T2 출국' },
-  ]
+function GateBarChart({ title, data }: { title: string; data: GateData[] }) {
+  return (
+    <div className="slot-gate-chart">
+      <h4>{title}</h4>
+      <ResponsiveContainer width="100%" height={200}>
+        <BarChart
+          data={data}
+          layout="vertical"
+          margin={{ top: 4, right: 16, left: 8, bottom: 4 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+          <XAxis
+            type="number"
+            tick={{ fill: 'var(--text)', fontSize: 11 }}
+            tickFormatter={(v) => `${v}명`}
+          />
+          <YAxis
+            type="category"
+            dataKey="name"
+            width={72}
+            tick={{ fill: 'var(--text)', fontSize: 11 }}
+          />
+          <Tooltip
+            formatter={(value: unknown) =>
+              `${Math.round(Number(value ?? 0)).toLocaleString()}명`
+            }
+            contentStyle={{
+              background: 'var(--bg)',
+              border: '1px solid var(--border)',
+              borderRadius: '8px',
+            }}
+          />
+          <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+            {data.map((entry) => {
+              const level = getCongestionLevel(entry.value)
+              return <Cell key={entry.name} fill={GATE_COLORS[level]} />
+            })}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  )
 }
 
 function SummaryCard({
@@ -77,13 +101,38 @@ function SummaryCard({
 }
 
 export function TimeSlotDetail({ item }: TimeSlotDetailProps) {
-  const gateData = buildGateData(item)
   const t1Arrival = parseCount(item.t1egsum1)
   const t1Departure = parseCount(item.t1dgsum1)
   const t2Arrival = parseCount(item.t2egsum1)
   const t2Departure = parseCount(item.t2dgsum2)
   const total = t1Arrival + t1Departure + t2Arrival + t2Departure
   const overallLevel = getCongestionLevel(total)
+
+  const t1ArrivalGates: GateData[] = [
+    { name: '동편 A', value: parseCount(item.t1eg1) },
+    { name: '동편 B', value: parseCount(item.t1eg2) },
+    { name: '서편 E', value: parseCount(item.t1eg3) },
+    { name: '서편 F', value: parseCount(item.t1eg4) },
+  ]
+
+  const t1DepartureGates: GateData[] = [
+    { name: '출국 1', value: parseCount(item.t1dg1) },
+    { name: '출국 2', value: parseCount(item.t1dg2) },
+    { name: '출국 3', value: parseCount(item.t1dg3) },
+    { name: '출국 4', value: parseCount(item.t1dg4) },
+    { name: '출국 5', value: parseCount(item.t1dg5) },
+    { name: '출국 6', value: parseCount(item.t1dg6) },
+  ]
+
+  const t2ArrivalGates: GateData[] = [
+    { name: '입국 1', value: parseCount(item.t2eg1) },
+    { name: '입국 2', value: parseCount(item.t2eg2) },
+  ]
+
+  const t2DepartureGates: GateData[] = [
+    { name: '출국 1', value: parseCount(item.t2dg1) },
+    { name: '출국 2', value: parseCount(item.t2dg2) },
+  ]
 
   return (
     <section className="slot-detail">
@@ -99,53 +148,24 @@ export function TimeSlotDetail({ item }: TimeSlotDetailProps) {
         </div>
       </header>
 
-      <div className="slot-detail__summary">
-        <SummaryCard label="T1 입국장" value={t1Arrival} sub="제1터미널" />
-        <SummaryCard label="T1 출국장" value={t1Departure} sub="제1터미널" />
-        <SummaryCard label="T2 입국장" value={t2Arrival} sub="제2터미널" />
-        <SummaryCard label="T2 출국장" value={t2Departure} sub="제2터미널" />
+      <div className="slot-detail__totals">
+        <h3>터미널별 합계</h3>
+        <div className="slot-detail__summary">
+          <SummaryCard label="T1 입국장 합계" value={t1Arrival} sub="제1터미널" />
+          <SummaryCard label="T1 출국장 합계" value={t1Departure} sub="제1터미널" />
+          <SummaryCard label="T2 입국장 합계" value={t2Arrival} sub="제2터미널" />
+          <SummaryCard label="T2 출국장 합계" value={t2Departure} sub="제2터미널" />
+        </div>
       </div>
 
-      <div className="slot-detail__chart">
-        <h3>출입국장별 예상 승객</h3>
-        <ResponsiveContainer width="100%" height={320}>
-          <BarChart
-            data={gateData}
-            layout="vertical"
-            margin={{ top: 4, right: 16, left: 8, bottom: 4 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-            <XAxis
-              type="number"
-              tick={{ fill: 'var(--text)', fontSize: 11 }}
-              tickFormatter={(v) => `${v}명`}
-            />
-            <YAxis
-              type="category"
-              dataKey="name"
-              width={90}
-              tick={{ fill: 'var(--text)', fontSize: 11 }}
-            />
-            <Tooltip
-              formatter={(value: unknown) =>
-                `${Math.round(Number(value ?? 0)).toLocaleString()}명`
-              }
-              contentStyle={{
-                background: 'var(--bg)',
-                border: '1px solid var(--border)',
-                borderRadius: '8px',
-              }}
-            />
-            <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-              {gateData.map((entry) => {
-                const level = getCongestionLevel(entry.value)
-                return (
-                  <Cell key={entry.name} fill={GATE_COLORS[level]} />
-                )
-              })}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+      <div className="slot-detail__details">
+        <h3>출입국장별 상세</h3>
+        <div className="slot-detail__gate-grid">
+          <GateBarChart title="T1 입국장" data={t1ArrivalGates} />
+          <GateBarChart title="T1 출국장" data={t1DepartureGates} />
+          <GateBarChart title="T2 입국장" data={t2ArrivalGates} />
+          <GateBarChart title="T2 출국장" data={t2DepartureGates} />
+        </div>
       </div>
     </section>
   )
